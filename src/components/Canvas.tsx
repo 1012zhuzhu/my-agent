@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { CustomNodeComponent } from './nodes/CustomNode'
 import { useCanvasStore } from '../store/useStore'
 import ReactFlow, { Background, Controls, useEdgesState, useNodesState, type Edge, type OnConnect, type OnEdgesChange, type OnNodesChange } from 'reactflow'
