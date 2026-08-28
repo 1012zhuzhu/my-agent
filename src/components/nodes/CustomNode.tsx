@@ -1,27 +1,34 @@
-
 import { Box, Paper, Typography } from '@mui/material'
 import type { FlowNode } from '../../type'
 import { Handle,Position } from 'reactflow'
-import { memo } from 'react'
+import { memo, useCallback } from 'react'
+import { useCanvasStore } from '../../store/useStore'
 
 interface CustomNodeProps {
+    id: string,
     data: FlowNode['data'],
-    sleceted?: boolean
+    selected?: boolean
 }
 
-function CustomNode({data , sleceted} : CustomNodeProps) {
+function CustomNode({id,data, selected} : CustomNodeProps) {
     const outputs = data.outputs ?? [{ name: 'output', label: '输出' }]
+    const {setEditingNodeId} = useCanvasStore()
+
+    const handleDoubleClick = useCallback(() =>{
+        setEditingNodeId(id)
+    },[id,setEditingNodeId])
 
   return (
-    <Paper
+    <Paper onDoubleClick={handleDoubleClick}
         sx={{
             p:1.5,
             minWidth:100,
             borderColor: data.color || '#ccc',
-            borderWidth: sleceted ? 2 : 1,
+            borderWidth: selected ? 2 : 1,
             borderStyle: 'solid',
             borderRadius: 2
         }}
+        
     >
         <Handle
             type='target'

@@ -6,7 +6,9 @@ interface CanvasStore {
     nodes: FlowNode[]
     edges: FlowEdge[]
     isDarkMode: boolean
+    editingNodes: string | null
 
+    setEditingNodeId: (id: string | null) => void
     setNodes: (nodes: FlowNode[]) => void
     addNode: (nodeTypes: string, position: {x: number; y: number}) => void
     setEdges: (edges: FlowEdge[]) => void
@@ -14,12 +16,14 @@ interface CanvasStore {
     saveFlow: () => FlowData
     loadFlow: (data: FlowData) => void
     clearCanvas: () => void
+    updateNodeInput: (nodeId: string, inputKey: any, inputValue: any) => void
 }
 
 export const useCanvasStore = create<CanvasStore>((set,get) => ({
     nodes: [],
     edges: [],
     isDarkMode: false,
+    editingNodes: null,
 
     setNodes: (nodes) => set({nodes}),
     addNode: (nodeTypes,position) => set((state) => {
@@ -40,6 +44,23 @@ export const useCanvasStore = create<CanvasStore>((set,get) => ({
         }
         return { nodes: [...state.nodes, newNode] }
     }),
+
+    updateNodeInput: (nodeId: string,inputKey: any,inputValue: any) => set((state) => ({
+        nodes: state.nodes.map(n => {
+            if(n.id !== nodeId) return n
+            return{
+                ...n,
+                data:{
+                    ...n.data,
+                    inputs: {...n.data.inputs, [inputKey]:inputValue}
+                }
+
+            }
+    })
+    })),
+
+    setEditingNodeId: (id) => set({editingNodes: id}),
+
     setEdges: (edges) => set({edges}),
 
     toggleDarkMode:()=> set((s) => ({isDarkMode: !s.isDarkMode})),

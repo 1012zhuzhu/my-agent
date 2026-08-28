@@ -1,4 +1,9 @@
+export interface SelectOption {
+  name: string
+  label: string
+}
 export interface InputParam{
+    options: SelectOption[]
     name: string
     label: string
     type: 'string' | 'number' | 'boolean' | 'code' | 'dropdown' | 'asyncOptions'
