@@ -4,7 +4,6 @@ import type {
   ExecutionContext,
   NodeExecutionResult,
 } from "../ExecutionContext";
-import { Handle } from "reactflow";
 
 export class EndExecutor implements NodeExecutor {
   async execute(
@@ -13,7 +12,7 @@ export class EndExecutor implements NodeExecutor {
   ): Promise<NodeExecutionResult> {
     const input = node.data.inputs.input ?? context.getVariable('lastOutput')
     return {
-      output: input,
+      output: '你好end',
     };
   }
 }

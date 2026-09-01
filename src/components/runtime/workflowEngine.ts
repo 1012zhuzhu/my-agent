@@ -25,41 +25,41 @@ export class workflowEngine {
         throw new Error(
             'Workflow must contain a Start Node'
         )
-        
     }
     let currentNode: FlowNode | undefined = startNode
 
     let incomingHanlde : string | undefined
 
-    const step = 500
+    const step = 50
     for(let i=0; i<step;i++){
         if(!currentNode){
             throw new Error(
                 'Workflow dont find need Node'
             )
         }
-        
     const executor = this.executor[currentNode.data.name]
     if(!executor){
         throw new Error(
                 `Workflow dont find need Node${currentNode.data.name}`
             )
     }
-    const result = await executor.execute(
+    const result =await executor.execute(
         currentNode,
         context
     )
+
     context.setNodeOutPuts(
         currentNode.id,
         result.output
     )
-    if(currentNode.data.name === 'endNode'){
-        return {
-            output: result.output,
-            context
-        }
+    if(currentNode.data.name === "endNode"){
+        return(
+            result.output,
+            console.log(result.output)
+            
+        )
     }
-
+    
     incomingHanlde = result.nextHandle
 
     const nextEdge = this.findNextEdge(
@@ -75,22 +75,18 @@ export class workflowEngine {
     currentNode = flow.nodes.find(
         node => node.id === nextEdge.target
     )
-    console.log(
-    '当前节点:',
-    currentNode.id,
-    currentNode.data.name
-)
 
-console.log(
-    'nextHandle:',
-    result.nextHandle
-)
+    const lastNodeId = nextEdge.source 
+    const lastNodeOutput = context.getNodeOutPuts(lastNodeId)
+    context.setNodeInPuts(
+        currentNode?.id,
+        {
+           nodeId:lastNodeId,
+           output: lastNodeOutput
+        }
+    )
 
-console.log(
-    '所有 edges:',
-    flow.edges
-)
-}
+    }
     throw new Error(
       'Workflow execution exceeded maximum steps'
     )
@@ -114,4 +110,19 @@ console.log(
             return edge.sourceHandle === sourceHandle
         })
     }
+    // private findNextEdge(
+    //     node: FlowNode,
+    //     edges: FlowEdge[],
+    //     sourceHanlde?: string
+    // ){
+    //     edges.find(edge => {
+    //         if( !== edge.source){
+    //             return false
+    //         }
+    //         if(!sourceHanlde){
+    //             return true
+    //         }
+    //         return edge.sourceHandle === sourceHanlde
+    //     })
+    // }
 }

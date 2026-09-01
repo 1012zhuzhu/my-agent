@@ -10,7 +10,11 @@ export class LLMExecutor implements  NodeExecutor{
     node: FlowNode,
     context: ExecutionContext,
   ): Promise<NodeExecutionResult> {
-    const prompt = String(node.data.inputs.prompt ?? "");
+    
+    const input = context.getNodeInPuts(node.id)
+    console.log("LLM获得的输入:", input)
+    const prompt = input.map(n => n.output).join("\n")
+    console.log("LLM最终收到的Prompt:", prompt)//之后要修复得到的类型
     const output = {
       response: `[Mock LLM]${prompt}`,
     };
@@ -18,8 +22,9 @@ export class LLMExecutor implements  NodeExecutor{
       'lastOutput',
       output
     )
+    
     return {
-      output,
+      output:`此处调用了LLM+start${prompt}`,
       nextHandle: "output",
     };
   }

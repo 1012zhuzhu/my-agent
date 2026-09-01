@@ -14,8 +14,10 @@ export class StartExecutor implements NodeExecutor {
       message: "workflow start",
       varables: context.getAllVariable(),
     };
+    
+    console.log('start这里接通了')
     return {
-      output,
+      output:`你好`,
       nextHandle: "output",
     };
   }

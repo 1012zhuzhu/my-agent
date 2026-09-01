@@ -2,9 +2,15 @@ export interface NodeExecutionResult {
     output?: unknown
     nextHandle?: string
 }
+type NodeInPut = {
+  nodeId: string
+  output: unknown
+  Handle?: string
+}
 export class ExecutionContext {
   private readonly nodeOutPuts = new Map<string, unknown>()
   private readonly variable = new Map<string, unknown>()
+  private readonly nodeInPuts = new Map<string, NodeInPut[]>
 
   setNodeOutPuts(nodeId:string,output:unknown){
     this.nodeOutPuts.set(nodeId,output)
@@ -18,6 +24,16 @@ export class ExecutionContext {
   getVariable(name:string){
     return this.variable.get(name)
   }
+  setNodeInPuts(nodeId: string, input: NodeInPut) {
+    const inputs = this.nodeInPuts.get(nodeId) ?? []
+
+    inputs.push(input)
+
+    this.nodeInPuts.set(nodeId, inputs)
+}
+  getNodeInPuts(nodeId: string): NodeInPut[] {
+    return this.nodeInPuts.get(nodeId) ?? []
+}
   getAllNodeOutPuts(){
     return Object.fromEntries(this.nodeOutPuts)
   }
