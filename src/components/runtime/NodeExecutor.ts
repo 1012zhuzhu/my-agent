@@ -1,10 +1,12 @@
-import { type FlowNode } from '../../type/index';
-import { ExecutionContext, type NodeExecutionResult } from './ExecutionContext';
+import { type FlowNode } from "../../type/index";
+import {
+  ExecutionContext,
+  type NodeExecutionResult,
+} from "./context/ExecutionContext";
 
-
-export interface NodeExecutor  {
+export interface NodeExecutor {
   execute(
     node: FlowNode,
-    context: ExecutionContext
-  ): Promise<NodeExecutionResult>
+    context: ExecutionContext,
+  ): Promise<NodeExecutionResult>;
 }

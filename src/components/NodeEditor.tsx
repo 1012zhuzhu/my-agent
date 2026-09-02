@@ -1,4 +1,3 @@
-import React from 'react'
 import { useCanvasStore } from '../store/useStore'
 import { NODE_DEFINITION } from '../data/nodes'
 import type { InputParam, SelectOption } from '../type';

@@ -3,7 +3,7 @@ import type { FlowNode } from "../../../type";
 import type {
   ExecutionContext,
   NodeExecutionResult,
-} from "../ExecutionContext";
+} from "../context/ExecutionContext";
 
 export class StartExecutor implements NodeExecutor {
   async execute(
@@ -14,10 +14,10 @@ export class StartExecutor implements NodeExecutor {
       message: "workflow start",
       varables: context.getAllVariable(),
     };
-    
-    console.log('start这里接通了')
+
+    console.log("start这里接通了");
     return {
-      output:`你好`,
+      output: `你好start`,
       nextHandle: "output",
     };
   }

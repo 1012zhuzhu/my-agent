@@ -49,4 +49,4 @@ function NodePalette() {
     </div>
   )
 }
-export default NodePalette
+export default NodePalette 

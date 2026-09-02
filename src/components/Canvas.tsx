@@ -13,7 +13,7 @@ function Flow() {
   const nodeChangeRef = useRef(false)
   const edgeChangeRef = useRef(false)
   const { screenToFlowPosition } = useReactFlow()
-
+  //设置一个状态锁如果不是reactflow更新的那么我们就更新节点
   useEffect(() =>{
       if(!nodeChangeRef.current){
         rfSetNodes(nodeStore.map(n => ({
@@ -31,7 +31,7 @@ function Flow() {
       }
       edgeChangeRef.current = false
   },[edgeStore])
-
+  //状态更新颗粒度
   const syncToStore : OnNodesChange = useCallback((changes) => {
     nodeChangeRef.current = true
     onChangNodes(changes)

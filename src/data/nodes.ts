@@ -10,21 +10,38 @@ export const NODE_DEFINITION: NodeDefinition[] = [
         outputs:[{name:'output', label: '输出'}]
     },
     {
-        name:'llmNode',
-        label:'LLM模型',
-        icon:'Bot',
-        color:'#FFB84D',
+        name: 'llmNode',
+        label: 'LLM模型',
+        icon: 'Bot',
+        color: '#FFB84D',
         inputs: [
             {
-                name: 'model', label: '模型', type: 'dropdown', optional: false,
-                options: []
+                name: 'model',
+                label: '模型',
+                type: 'dropdown',
+                optional: false,
+                options: [
+                    {
+                        name: 'mock',
+                        label: 'Mock LLM'
+                    }
+                ],
+                default: 'mock'
             },
             {
-                name: 'prompt', label: 'Prompt', type: 'string', optional: false,
+                name: 'prompt',
+                label: 'Prompt',
+                type: 'string',
+                optional: false,
                 options: []
             }
         ],
-        outputs:[{name: 'output',label: '输出'}]
+        outputs: [
+            {
+                name: 'output',
+                label: '输出'
+            }
+        ]
     },
     {
         name:'coditionNode',

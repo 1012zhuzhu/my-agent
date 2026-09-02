@@ -29,6 +29,13 @@ export const useCanvasStore = create<CanvasStore>((set,get) => ({
     addNode: (nodeTypes,position) => set((state) => {
         const def = NODE_DEFINITION.find(d => d.name === nodeTypes)
         if(!def) return state
+        const inputs = Object.fromEntries(
+        def.inputs.map(input => [
+        input.name,
+        input.default
+            ])
+        )
+        console.log("创建节点的 inputs:", inputs)
         const newNode: FlowNode = {
             id: `node_${Date.now()}`,
             type: 'customNode',
@@ -38,7 +45,7 @@ export const useCanvasStore = create<CanvasStore>((set,get) => ({
                 label: def.label,
                 icon: def.icon,
                 color: def.color,
-                inputs: {},
+                inputs,
                 outputs: def.outputs
             }
         }
