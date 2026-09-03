@@ -1,3 +1,4 @@
+import type { Message, History } from "./Message";
 import { ToolRegistry } from '../tool/ToolRegistry';
 
 export interface NodeExecutionResult {
@@ -15,6 +16,7 @@ export class ExecutionContext {
   private readonly nodeOutPuts = new Map<string, unknown>();
   private readonly variable = new Map<string, unknown>();
   private readonly nodeInPuts = new Map<string, NodeInPut[]>();
+  private  history : History = []
   
   constructor(
     private readonly toolRegistry: ToolRegistry
@@ -59,5 +61,13 @@ export class ExecutionContext {
 
   getAllVariable() {
     return Object.fromEntries(this.variable);
+  }
+
+  addMessage(message: Message){
+    this.history.push(message)
+  }
+
+  getHistory(): History {
+    return this.history
   }
 }

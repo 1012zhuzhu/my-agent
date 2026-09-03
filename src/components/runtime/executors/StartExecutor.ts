@@ -17,7 +17,7 @@ export class StartExecutor implements NodeExecutor {
 
     console.log("start这里接通了");
     return {
-      output: `你好start`,
+      output: node.id,
       nextHandle: "output",
     };
   }

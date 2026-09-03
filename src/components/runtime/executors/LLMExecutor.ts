@@ -7,6 +7,7 @@ import type {
 import { ModelFactory } from "../model/ModelFactory";
 import type { ModelConfig } from "../model/ModelCofig";
 
+
 export class LLMExecutor implements NodeExecutor {
   async execute(
     node: FlowNode,
@@ -21,7 +22,18 @@ export class LLMExecutor implements NodeExecutor {
       .map((n) => n.output)
       .join("\n");
 
+    // 记录用户输入
+    context.addMessage({
+      role: "user",
+      content: prompts,
+    });
+
     // 3. 获取当前 LLM 节点选择的模型
+    console.log('这里是用户的prompt',node.data.inputs.prompt);
+
+    console.log('只是测试',context.getHistory());
+    
+    
     const modelName = node.data.inputs.model;
 
     if (typeof modelName !== "string" || !modelName) {
@@ -30,30 +42,66 @@ export class LLMExecutor implements NodeExecutor {
 
     // 4. 创建模型配置
     const config: ModelConfig = {
-      provider:'mock',
+      provider: "mock",
       model: modelName,
-    };//这里之后需要研究
+    };
 
-    // 5. 根据配置创建模型
+    // 5. 创建模型
     const model = ModelFactory.create(config);
+    let step = 0
+    const maxStep = 50
 
-    // 6. 调用模型
-    const response = await model.invoke(prompts);
+    while(step < maxStep){
+      console.log('这是第一次调用模型',context.getHistory());
+    // 6. 第一次调用模型
+    const response = await model.invoke(
+      context.getHistory()
+    );
+    
+    
 
     console.log("LLM返回:", response);
+    if(response.type === 'text'){
+      return{
+        output:response.content,
+        nextHandle:'output'
+      }
+    }
 
-    // 7. 保存执行结果
-    context.setVariable("lastOutput", response);
+    if (response.type === "tool_call") {
 
-    const registry = context.getToolRegistry();
+      // 7. 找到工具
+      const tool = context
+        .getToolRegistry()
+        .get(response.toolName);
 
-    const calculator = registry.get("calculator");
+      if (!tool) {
+        throw new Error(`Tool not found: ${response.toolName}`);
+      }
 
-    console.log("找到的工具:", calculator);
+      // 8. 记录模型的 Tool Call
+      context.addMessage({
+        role: "assistant",
+        toolName: response.toolName,
+        args: response.args,
+      });
 
-    return {
-      output: response,
-      nextHandle: "output",
-    };
+      // 9. 执行工具
+      const toolResult = await tool.execute(response.args);
+
+      console.log("toolResult:", toolResult);
+
+      // 10. 记录工具结果
+      context.addMessage({
+        role: "tool",
+        content: String(toolResult),
+      });
+
+    step++
+      }
+
+    }
+    throw new Error("Agent execution exceeded maximum steps");
   }
+    
 }
