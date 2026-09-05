@@ -31,7 +31,14 @@ export class LLMExecutor implements NodeExecutor {
     // 3. 获取当前 LLM 节点选择的模型
     console.log('这里是用户的prompt',node.data.inputs.prompt);
 
-    console.log('只是测试',context.getHistory());
+    console.log(
+      "只是测试 step:",
+      0,
+      "length:",
+      context.getHistory().length,
+      "history:",
+      JSON.stringify(context.getHistory())
+    );
     
     
     const modelName = node.data.inputs.model;
