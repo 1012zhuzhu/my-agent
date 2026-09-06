@@ -16,7 +16,7 @@ interface CanvasStore {
     saveFlow: () => FlowData
     loadFlow: (data: FlowData) => void
     clearCanvas: () => void
-    updateNodeInput: (nodeId: string, inputKey: any, inputValue: any) => void
+    updateNodeInput: (nodeId: string, inputKey: string, inputValue: unknown) => void
 }
 
 export const useCanvasStore = create<CanvasStore>((set,get) => ({
@@ -52,7 +52,7 @@ export const useCanvasStore = create<CanvasStore>((set,get) => ({
         return { nodes: [...state.nodes, newNode] }
     }),
 
-    updateNodeInput: (nodeId: string,inputKey: any,inputValue: any) => set((state) => ({
+    updateNodeInput: (nodeId: string, inputKey: string, inputValue: unknown) => set((state) => ({
         nodes: state.nodes.map(n => {
             if(n.id !== nodeId) return n
             return{

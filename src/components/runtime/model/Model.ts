@@ -1,4 +1,5 @@
 import type { Message } from "../context/Message";
+import type { ToolDefintion } from "../tool/Tool";
 
 export type ModelResponse = | {
     type: 'text';
@@ -11,5 +12,5 @@ export type ModelResponse = | {
 
 
 export interface Model {
-    invoke(prompt: Message[]): Promise<ModelResponse>
+    invoke(prompt: Message[],tools: ToolDefintion[]): Promise<ModelResponse>
 }

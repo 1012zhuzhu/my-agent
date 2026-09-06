@@ -6,7 +6,7 @@ import type {
 } from "../context/ExecutionContext";
 import { ModelFactory } from "../model/ModelFactory";
 import type { ModelConfig } from "../model/ModelCofig";
-
+import { ToolRunner } from '../tool/ToolRunner';
 
 export class LLMExecutor implements NodeExecutor {
   async execute(
@@ -15,12 +15,25 @@ export class LLMExecutor implements NodeExecutor {
   ): Promise<NodeExecutionResult> {
 
     // 1. 获取上游节点传过来的输入
-    const input = context.getNodeInPuts(node.id);
+    const inputs = context.getNodeInPuts(node.id);
 
     // 2. 把上游输入组成 Prompt
-    const prompts = input
-      .map((n) => n.output)
+    const upstreamPrompt = inputs
+      .map((n) =>
+        typeof n.output === "string" ? n.output : JSON.stringify(n.output),
+      )
       .join("\n");
+    const configuredPrompt = node.data.inputs.prompt;
+    const prompts = [
+      typeof configuredPrompt === "string" ? configuredPrompt.trim() : "",
+      upstreamPrompt,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    if (!prompts) {
+      throw new Error("LLM node requires a prompt or an upstream input");
+    }
 
     // 记录用户输入
     context.addMessage({
@@ -29,18 +42,6 @@ export class LLMExecutor implements NodeExecutor {
     });
 
     // 3. 获取当前 LLM 节点选择的模型
-    console.log('这里是用户的prompt',node.data.inputs.prompt);
-
-    console.log(
-      "只是测试 step:",
-      0,
-      "length:",
-      context.getHistory().length,
-      "history:",
-      JSON.stringify(context.getHistory())
-    );
-    
-    
     const modelName = node.data.inputs.model;
 
     if (typeof modelName !== "string" || !modelName) {
@@ -57,17 +58,19 @@ export class LLMExecutor implements NodeExecutor {
     const model = ModelFactory.create(config);
     let step = 0
     const maxStep = 50
+    const toolRunner = new ToolRunner(
+        context.getToolRegistry()
+      )
 
     while(step < maxStep){
-      console.log('这是第一次调用模型',context.getHistory());
-    // 6. 第一次调用模型
-    const response = await model.invoke(
-      context.getHistory()
-    );
-    
-    
-
-    console.log("LLM返回:", response);
+      const tools = context
+        .getToolRegistry()
+        .getDefinitions()
+      // 6. 调用模型
+      const response = await model.invoke(
+        context.getHistory(),
+        tools
+      );
     if(response.type === 'text'){
       return{
         output:response.content,
@@ -77,36 +80,28 @@ export class LLMExecutor implements NodeExecutor {
 
     if (response.type === "tool_call") {
 
-      // 7. 找到工具
-      const tool = context
-        .getToolRegistry()
-        .get(response.toolName);
+      
 
-      if (!tool) {
-        throw new Error(`Tool not found: ${response.toolName}`);
-      }
+      const toolResult = await toolRunner.run(
+        response.toolName,
+        response.args
+      );
 
-      // 8. 记录模型的 Tool Call
       context.addMessage({
         role: "assistant",
         toolName: response.toolName,
         args: response.args,
       });
 
-      // 9. 执行工具
-      const toolResult = await tool.execute(response.args);
+      
 
-      console.log("toolResult:", toolResult);
-
-      // 10. 记录工具结果
       context.addMessage({
         role: "tool",
         content: String(toolResult),
       });
 
-    step++
-      }
-
+      step++;
+    }
     }
     throw new Error("Agent execution exceeded maximum steps");
   }

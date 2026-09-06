@@ -10,9 +10,12 @@ export class EndExecutor implements NodeExecutor {
     node: FlowNode,
     context: ExecutionContext,
   ): Promise<NodeExecutionResult> {
-    const input = node.data.inputs.input ?? context.getVariable("lastOutput");
+    const inputs = context.getNodeInPuts(node.id);
+    const input =
+      node.data.inputs.input ?? inputs[inputs.length - 1]?.output;
+
     return {
-      output: "你好end",
+      output: input,
     };
   }
 }

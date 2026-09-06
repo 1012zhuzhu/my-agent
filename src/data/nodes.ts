@@ -44,7 +44,7 @@ export const NODE_DEFINITION: NodeDefinition[] = [
         ]
     },
     {
-        name:'coditionNode',
+        name:'conditionNode',
         label:'条件分支',
         icon:'Branching',
         color:'#F472B6',

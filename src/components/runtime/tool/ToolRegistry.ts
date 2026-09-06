@@ -1,4 +1,4 @@
-import type { Tool } from "./Tool";
+import type { Tool, ToolDefintion } from "./Tool";
 
 
 export class ToolRegistry {
@@ -9,7 +9,8 @@ export class ToolRegistry {
             tool
         )
     }
-    getDefinitions(){
+    
+    getDefinitions(): ToolDefintion[] {
     return Array.from(this.tools.values())
     .map(tool=>({
         name: tool.name,
@@ -17,6 +18,7 @@ export class ToolRegistry {
         parameters: tool.parameters
     }));
     }
+
     get(name: string){
         return this.tools.get(name)
     }

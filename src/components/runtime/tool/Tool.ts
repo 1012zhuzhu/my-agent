@@ -4,6 +4,11 @@ export interface Tool {
     parameters: Schema;
     execute(args: unknown): Promise<unknown>;
 }
+export interface ToolDefintion {
+    name: string;
+    description: string;
+    parameters: Schema
+}
 export interface Schema {
     type:'object';
 

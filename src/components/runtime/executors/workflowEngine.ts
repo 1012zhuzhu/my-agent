@@ -2,6 +2,7 @@ import type { FlowData, FlowNode } from "../../../type";
 import { ExecutionContext } from "../context/ExecutionContext";
 import type { NodeExecutor } from "../NodeExecutor";
 import { EndExecutor } from "./EndExecutor";
+import { ConditionExecutor } from "./ConditionExecutor";
 import { LLMExecutor } from "./LLMExecutor";
 import { StartExecutor } from "./StartExecutor";
 import { type FlowEdge } from "../../../type/index";
@@ -15,6 +16,9 @@ export class workflowEngine {
     this.executor = {
       startNode: new StartExecutor(),
       llmNode: new LLMExecutor(),
+      conditionNode: new ConditionExecutor(),
+      // Compatibility for workflows saved before the node type typo was fixed.
+      coditionNode: new ConditionExecutor(),
       endNode: new EndExecutor(),
     };
   }
@@ -58,14 +62,18 @@ export class workflowEngine {
       if (!nextEdge) {
         throw new Error(`No outgoing edge found for node: ${currentNode.id}`);
       }
-      currentNode = flow.nodes.find((node) => node.id === nextEdge.target);
+      const nextNode = flow.nodes.find((node) => node.id === nextEdge.target);
+      if (!nextNode) {
+        throw new Error(`Workflow target node not found: ${nextEdge.target}`);
+      }
 
       const lastNodeId = nextEdge.source;
       const lastNodeOutput = context.getNodeOutPuts(lastNodeId);
-      context.setNodeInPuts(currentNode?.id, {
+      context.setNodeInPuts(nextNode.id, {
         nodeId: lastNodeId,
         output: lastNodeOutput,
       });
+      currentNode = nextNode;
     }
     throw new Error("Workflow execution exceeded maximum steps");
   }

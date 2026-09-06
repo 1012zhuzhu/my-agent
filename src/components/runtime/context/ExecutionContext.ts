@@ -16,11 +16,12 @@ export class ExecutionContext {
   private readonly nodeOutPuts = new Map<string, unknown>();
   private readonly variable = new Map<string, unknown>();
   private readonly nodeInPuts = new Map<string, NodeInPut[]>();
-  private  history : History = []
+  private history: History = []
+  private readonly toolRegistry: ToolRegistry
   
-  constructor(
-    private readonly toolRegistry: ToolRegistry
-  ) {}
+  constructor(toolRegistry: ToolRegistry) {
+    this.toolRegistry = toolRegistry
+  }
   
 
   getToolRegistry() {

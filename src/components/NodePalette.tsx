@@ -1,10 +1,7 @@
-import { useCanvasStore } from '../store/useStore'
 import type { NodeDefinition } from '../type';
 import { NODE_DEFINITION } from '../data/nodes';
 
 function NodePalette() {
-    const {addNode} = useCanvasStore();
-
     const handleDragStart = (e: React.DragEvent, def: NodeDefinition) => {
         e.dataTransfer.setData('application/reactflow', def.name)
         e.dataTransfer.effectAllowed = 'move'
@@ -49,4 +46,4 @@ function NodePalette() {
     </div>
   )
 }
-export default NodePalette 
+export default NodePalette

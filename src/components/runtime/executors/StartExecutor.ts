@@ -7,17 +7,16 @@ import type {
 
 export class StartExecutor implements NodeExecutor {
   async execute(
-    node: FlowNode,
+    _node: FlowNode,
     context: ExecutionContext,
   ): Promise<NodeExecutionResult> {
     const output = {
       message: "workflow start",
-      varables: context.getAllVariable(),
+      variables: context.getAllVariable(),
     };
 
-    console.log("start这里接通了");
     return {
-      output: node.id,
+      output,
       nextHandle: "output",
     };
   }

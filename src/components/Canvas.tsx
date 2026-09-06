@@ -23,14 +23,14 @@ function Flow() {
     )
       }
       nodeChangeRef.current = false
-  },[nodeStore])  
+  },[nodeStore, rfSetNodes])
 
   useEffect(() =>{
       if(!edgeChangeRef.current){
         rfSetEdge(edgeStore)
       }
       edgeChangeRef.current = false
-  },[edgeStore])
+  },[edgeStore, rfSetEdge])
   //状态更新颗粒度
   const syncToStore : OnNodesChange = useCallback((changes) => {
     nodeChangeRef.current = true
@@ -58,7 +58,7 @@ function Flow() {
   edgeChangeRef.current = true
   onChangEdge(changes)
 
-  const update = changes.reduce((acc: FlowEdge[], c: EdgeChange) => {
+  const update = changes.reduce<FlowEdge[]>((acc, c: EdgeChange) => {
     if (c.type === 'remove') {
       return acc.filter(e => e.id !== c.id)
     }
@@ -69,7 +69,11 @@ function Flow() {
 }, [rfEdges, onChangEdge, setEdges])
 
   const onConnect: OnConnect = useCallback((params) => {
-  const newEdge = {
+  if (!params.source || !params.target) {
+    return
+  }
+
+  const newEdge: FlowEdge = {
     id: `${params.source}-${params.sourceHandle}-${params.target}-${params.targetHandle}`,
     source: params.source,        // 源节点 ID
     target: params.target,        // 目标节点 ID
@@ -77,7 +81,7 @@ function Flow() {
     targetHandle: params.targetHandle    // 目标输入点 ID
   }
   const update = [...rfEdges, newEdge]
-  setEdges(update as FlowEdge[])       // 存到 store
+  setEdges(update)       // 存到 store
   rfSetEdge(update)      // 通知 ReactFlow 重新渲染
 }, [rfEdges,setEdges,rfSetEdge])
 

@@ -1,3 +1,5 @@
+import type { Edge, Node } from 'reactflow'
+
 export interface SelectOption {
   name: string
   label: string
@@ -22,27 +24,18 @@ export interface NodeDefinition {
     outputs: {name: string; label: string}[]
 }
 
-export interface FlowNode {
-    id: string
-    type: string
-    position: {x: number; y: number }
-    data: {
-        icon: string
-        name:string
-        label: string
-        inputs: Record<string, unknown>
-        outputs?: {name: string; label: string}[]
-        color?: string
-    }
+export interface FlowNodeData {
+    icon: string
+    name: string
+    label: string
+    inputs: Record<string, unknown>
+    outputs?: {name: string; label: string}[]
+    color?: string
 }
 
-export interface FlowEdge {
-    id: string
-    source: string
-    target: string
-    sourceHandle: string
-    targetHandle: string
-}
+export type FlowNode = Node<FlowNodeData>
+
+export type FlowEdge = Edge
 
 export interface FlowData {
     nodes: FlowNode[]
