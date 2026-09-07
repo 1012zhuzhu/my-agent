@@ -1,4 +1,5 @@
 export interface Tool {
+    Validate(): unknown;
     name: string;
     description: string;
     parameters: Schema;

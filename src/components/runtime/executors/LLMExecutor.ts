@@ -60,12 +60,12 @@ export class LLMExecutor implements NodeExecutor {
     const maxStep = 50
     const toolRunner = new ToolRunner(
         context.getToolRegistry()
-      )
+    )
 
     while(step < maxStep){
-      const tools = context
-        .getToolRegistry()
-        .getDefinitions()
+      const toolNames = Array.isArray(node.data.inputs.tools) ? node.data.inputs.tools as string[] : [];
+
+      const tools = context.getToolRegistry().getDefinitions(toolNames)
       // 6. 调用模型
       const response = await model.invoke(
         context.getHistory(),
@@ -79,8 +79,6 @@ export class LLMExecutor implements NodeExecutor {
     }
 
     if (response.type === "tool_call") {
-
-      
 
       const toolResult = await toolRunner.run(
         response.toolName,

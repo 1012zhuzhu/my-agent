@@ -50,10 +50,12 @@ function Flow() {
       )
     }
     return acc
+    
   }, rfNodes as FlowNode[])
     setNodes(update)
+    console.log('新创建的节点',rfNodes)
   },[onChangNodes,setNodes,rfNodes])
-
+  
   const syncEdgesToStore: OnEdgesChange = useCallback((changes) => {
   edgeChangeRef.current = true
   onChangEdge(changes)
@@ -80,6 +82,7 @@ function Flow() {
     sourceHandle: params.sourceHandle,  // 源输出点 ID
     targetHandle: params.targetHandle    // 目标输入点 ID
   }
+  console.log('新创建的edge',newEdge)
   const update = [...rfEdges, newEdge]
   setEdges(update)       // 存到 store
   rfSetEdge(update)      // 通知 ReactFlow 重新渲染
