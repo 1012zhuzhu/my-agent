@@ -13,6 +13,8 @@ interface CustomNodeProps {
 function CustomNode({id,data, selected} : CustomNodeProps) {
     const outputs = data.outputs ?? [{ name: 'output', label: '输出' }]
     const {setEditingNodeId} = useCanvasStore()
+    const getOutputLeft = (index: number) =>
+        `${((index + 1) / (outputs.length + 1)) * 100}%`
 
     const handleDoubleClick = useCallback(() =>{
         setEditingNodeId(id)
@@ -26,7 +28,8 @@ function CustomNode({id,data, selected} : CustomNodeProps) {
             borderColor: data.color || '#ccc',
             borderWidth: selected ? 2 : 1,
             borderStyle: 'solid',
-            borderRadius: 2
+            borderRadius: 2,
+            position: 'relative',
         }}
         
     >
@@ -61,13 +64,34 @@ function CustomNode({id,data, selected} : CustomNodeProps) {
                 {key}: {String(value)?.slice(0,20)}...
             </Typography>
         ))}
+        {outputs.length > 0 && (
+            <Box sx={{ position: 'relative', height: 20, mt: 1 }}>
+                {outputs.map((out, i) => (
+                    <Typography
+                        key={out.name}
+                        variant="caption"
+                        sx={{
+                            position: 'absolute',
+                            left: getOutputLeft(i),
+                            transform: 'translateX(-50%)',
+                            whiteSpace: 'nowrap',
+                        }}
+                    >
+                        {out.label}
+                    </Typography>
+                ))}
+            </Box>
+        )}
         {outputs.map((out, i) => (
             <Handle
                 key={i}
                 type='source'
                 position={Position.Bottom}
                 id={out.name}
-                style={{background: data.color}}
+                style={{
+                    background: data.color,
+                    left: getOutputLeft(i),
+                }}
             />
         ))}
     </Paper>

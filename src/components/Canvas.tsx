@@ -53,7 +53,6 @@ function Flow() {
     
   }, rfNodes as FlowNode[])
     setNodes(update)
-    console.log('新创建的节点',rfNodes)
   },[onChangNodes,setNodes,rfNodes])
   
   const syncEdgesToStore: OnEdgesChange = useCallback((changes) => {

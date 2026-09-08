@@ -1,5 +1,4 @@
 export interface Tool {
-    Validate(): unknown;
     name: string;
     description: string;
     parameters: Schema;
@@ -12,7 +11,6 @@ export interface ToolDefintion {
 }
 export interface Schema {
     type:'object';
-
     properties:{
         [key: string] : {
             type: string;

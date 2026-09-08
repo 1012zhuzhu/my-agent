@@ -64,14 +64,16 @@ export class LLMExecutor implements NodeExecutor {
 
     while(step < maxStep){
       const toolNames = Array.isArray(node.data.inputs.tools) ? node.data.inputs.tools as string[] : [];
-
-      const tools = context.getToolRegistry().getDefinitions(toolNames)
+      
+      const tools = toolNames.length > 0 ? context.getToolRegistry().getDefinitions(toolNames) : context.getToolRegistry().getDefinitions()
       // 6. 调用模型
       const response = await model.invoke(
         context.getHistory(),
         tools
       );
+
     if(response.type === 'text'){
+      console.log('获取上游数据',response.content)
       return{
         output:response.content,
         nextHandle:'output'
@@ -82,7 +84,8 @@ export class LLMExecutor implements NodeExecutor {
 
       const toolResult = await toolRunner.run(
         response.toolName,
-        response.args
+        response.args,
+        toolNames.length > 0 ? toolNames: undefined
       );
 
       context.addMessage({

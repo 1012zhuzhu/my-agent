@@ -34,6 +34,16 @@ export const NODE_DEFINITION: NodeDefinition[] = [
                 type: 'string',
                 optional: false,
                 options: []
+            },
+            {
+                name: 'tools',
+                label: '可用的工具',
+                type: 'dropdown',
+                optional: true,
+                options: [
+                    { name: 'calculator', label: '计算器'},
+                ],
+                default: [],
             }
         ],
         outputs: [
@@ -49,10 +59,25 @@ export const NODE_DEFINITION: NodeDefinition[] = [
         icon:'Branching',
         color:'#F472B6',
         inputs: [
-            {
-                name: 'expression', label: '表达式', type: 'code', optional: false,
-                options: []
-            },
+        {   
+            name: 'operator',
+            label: '判断方式',
+            type: 'dropdown',
+            optional: false,
+            options: [
+            { name: 'equals', label: '等于' },
+            { name: 'notEquals', label: '不等于' },
+            { name: 'contains', label: '包含' },
+            ],
+            default: 'equals',
+        },
+        {
+            name: 'value',
+            label: '比较值',
+            type: 'string',
+            optional: false,
+            options: [],
+        },
         ],
         outputs:[
             {name: 'true',label: '是'},

@@ -24,11 +24,11 @@ export class MockModel implements Model{
         }
 
         return {
-          type: 'tool_call',
-          toolName: calculator.name,
-          args: {
-            expression: lastMessage.content ?? ''
-          }
+        type:"tool_call",
+        toolName:"calculator",
+        args: {
+          expression:'基本收到了calculator这个工具但是不具备'
+        }
         }
     }
     

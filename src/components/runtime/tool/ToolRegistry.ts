@@ -13,27 +13,18 @@ export class ToolRegistry {
     getDefinitions(
         names?: string[]
     ): ToolDefintion[] {
-
-
-        const tools = names
-            ? names
-                .map(name => this.tools.get(name))
-                .filter(
-                    (tool): tool is Tool => Boolean(tool)
-                )
-            : Array.from(this.tools.values())
-
-
+    const tools = names
+        ? names
+            .map(name => this.tools.get(name))
+            .filter(
+                (tool): tool is Tool => Boolean(tool)
+            )
+        : Array.from(this.tools.values())
         return tools.map(tool=>({
-
             name: tool.name,
-
             description: tool.description,
-
             parameters: tool.parameters
-
         }));
-
     }
 
     get(name: string){
