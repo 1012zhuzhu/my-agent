@@ -40,8 +40,10 @@ export const NODE_DEFINITION: NodeDefinition[] = [
                 label: '可用的工具',
                 type: 'dropdown',
                 optional: true,
+                multiple: true,
                 options: [
                     { name: 'calculator', label: '计算器'},
+                    { name: 'weather', label: '天气'},
                 ],
                 default: [],
             }

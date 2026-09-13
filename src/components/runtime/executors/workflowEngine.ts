@@ -8,6 +8,7 @@ import { StartExecutor } from "./StartExecutor";
 import { type FlowEdge } from "../../../type/index";
 import { ToolRegistry} from '../tool/ToolRegistry';
 import { CalculatorTool } from "../tool/CalculatorTool";
+import { WeatherTool,} from "../tool/WeatherTool";
 
 export class workflowEngine {
   private readonly executor: Record<string, NodeExecutor>;
@@ -25,6 +26,7 @@ export class workflowEngine {
   async run(flow: FlowData) {
     const toolRegistry = new ToolRegistry()
     toolRegistry.register(new CalculatorTool())
+    toolRegistry.register(new WeatherTool())
     const context = new ExecutionContext(toolRegistry);
 
     const startNode = flow.nodes.find((n) => n.data.name === "startNode");

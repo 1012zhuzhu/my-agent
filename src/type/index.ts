@@ -13,6 +13,8 @@ export interface InputParam{
     default?: unknown
     placeholder?: string
     show?: Record<string,unknown>
+
+    multiple?: boolean
 }
 
 export interface NodeDefinition {

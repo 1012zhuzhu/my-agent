@@ -13,7 +13,9 @@ export class EndExecutor implements NodeExecutor {
     const inputs = context.getNodeInPuts(node.id);
     const input =
       node.data.inputs.input ?? inputs[inputs.length - 1]?.output;
-
+    console.log('执行到endNode',node.id);
+    console.log('endnode收到的input',input)
+    
     return {
       output: input,
     };

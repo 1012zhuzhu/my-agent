@@ -35,7 +35,6 @@ export const useCanvasStore = create<CanvasStore>((set,get) => ({
         input.default
             ])
         )
-        console.log("创建节点的 inputs:", inputs)
         const newNode: FlowNode = {
             id: `node_${Date.now()}`,
             type: 'customNode',
@@ -52,19 +51,28 @@ export const useCanvasStore = create<CanvasStore>((set,get) => ({
         return { nodes: [...state.nodes, newNode] }
     }),
 
-    updateNodeInput: (nodeId: string, inputKey: string, inputValue: unknown) => set((state) => ({
-        nodes: state.nodes.map(n => {
-            if(n.id !== nodeId) return n
-            return{
+    updateNodeInput: (
+        nodeId: string,
+        inputKey: string,
+        inputValue: unknown
+        ) => set((state) => {
+        console.log(inputKey, inputValue)
+        return {
+            nodes: state.nodes.map(n => {
+            if (n.id !== nodeId) return n
+            return {
                 ...n,
-                data:{
-                    ...n.data,
-                    inputs: {...n.data.inputs, [inputKey]:inputValue}
+                data: {
+                ...n.data,
+                inputs: {
+                    ...n.data.inputs,
+                    [inputKey]: inputValue
                 }
-
+                }
             }
-    })
-    })),
+            })
+        }
+    }),
 
     setEditingNodeId: (id) => set({editingNodes: id}),
 

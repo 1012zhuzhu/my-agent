@@ -13,7 +13,6 @@ export class LLMExecutor implements NodeExecutor {
     node: FlowNode,
     context: ExecutionContext,
   ): Promise<NodeExecutionResult> {
-
     // 1. 获取上游节点传过来的输入
     const inputs = context.getNodeInPuts(node.id);
 
@@ -73,6 +72,10 @@ export class LLMExecutor implements NodeExecutor {
       );
 
     if(response.type === 'text'){
+      context.addMessage({
+        role: "assistant",
+        args: response.content,
+      });
       console.log('获取上游数据',response.content)
       return{
         output:response.content,
@@ -81,27 +84,38 @@ export class LLMExecutor implements NodeExecutor {
     }
 
     if (response.type === "tool_call") {
-
-      const toolResult = await toolRunner.run(
-        response.toolName,
-        response.args,
-        toolNames.length > 0 ? toolNames: undefined
-      );
-
       context.addMessage({
         role: "assistant",
         toolName: response.toolName,
         args: response.args,
       });
 
-      
-
+    const toolResult = await toolRunner.run(
+        response.toolName,
+        response.args,
+        toolNames.length > 0 ? toolNames: undefined
+      );
+    if (!toolResult.success) {
       context.addMessage({
         role: "tool",
-        content: String(toolResult),
-      });
+        toolName: response.toolName,
+        content: toolResult.error ?? toolResult.content,
+        success: false,
+        errorCode: toolResult.errorCode
+      })
 
-      step++;
+      step++
+      continue
+    }
+
+    context.addMessage({
+      role: "tool",
+      toolName: response.toolName,
+      content: toolResult.content,
+      success: true
+    })
+
+    step++
     }
     }
     throw new Error("Agent execution exceeded maximum steps");

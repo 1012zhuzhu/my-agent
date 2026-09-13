@@ -81,7 +81,6 @@ function Flow() {
     sourceHandle: params.sourceHandle,  // 源输出点 ID
     targetHandle: params.targetHandle    // 目标输入点 ID
   }
-  console.log('新创建的edge',newEdge)
   const update = [...rfEdges, newEdge]
   setEdges(update)       // 存到 store
   rfSetEdge(update)      // 通知 ReactFlow 重新渲染

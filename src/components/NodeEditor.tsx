@@ -74,13 +74,32 @@ function FieldInput({
   }
 
   if (param.type === 'dropdown' && param.options) {
+    let selectValue : string | string[]
+    if(param.multiple){
+      selectValue = Array.isArray(value) ? value : []
+    } else {
+      selectValue = typeof value === 'string' ? value : ''
+    }
+
     return (
       <FormControl fullWidth margin="dense">
         <InputLabel>{param.label}</InputLabel>
         <Select
-          value={(value ?? '') as string}
+          multiple={param.multiple}
+          value={selectValue}
           label={param.label}
-          onChange={e => onChange(e.target.value)}
+          onChange={e => {
+            const newValue = e.target.value
+            if(param.multiple) {
+              onChange(
+                Array.isArray(newValue) 
+                 ? newValue
+                 : [newValue]
+              )
+            } else {
+              onChange(newValue)
+            }
+          }}
         >
           {param.options.map((opt: SelectOption) => (
             <MenuItem key={opt.name} value={opt.name}>
