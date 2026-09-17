@@ -40,6 +40,7 @@ export class WeatherTool implements Tool {
 //   }
 // }
   async execute(args: unknown): Promise<ToolResult> {
+    void args
     return {
       success: false,
       content: '查询天气失败',

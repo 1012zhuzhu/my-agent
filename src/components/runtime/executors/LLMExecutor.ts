@@ -74,7 +74,7 @@ export class LLMExecutor implements NodeExecutor {
     if(response.type === 'text'){
       context.addMessage({
         role: "assistant",
-        args: response.content,
+        content: response.content,
       });
       console.log('获取上游数据',response.content)
       return{
@@ -101,7 +101,9 @@ export class LLMExecutor implements NodeExecutor {
         toolName: response.toolName,
         content: toolResult.error ?? toolResult.content,
         success: false,
-        errorCode: toolResult.errorCode
+        ...(toolResult.errorCode
+          ? { errorCode: toolResult.errorCode }
+          : {})
       })
 
       step++

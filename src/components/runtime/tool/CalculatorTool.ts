@@ -40,7 +40,8 @@ export class CalculatorTool implements Tool {
   //           : "unknown error",
   //     }
   //   }
-      async execute(_args: unknown): Promise<ToolResult> {
+      async execute(args: unknown): Promise<ToolResult> {
+      void args
       return {
         success: false,
         content: "计算失败",

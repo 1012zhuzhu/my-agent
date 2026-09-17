@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { workflowEngine } from '../../../src/components/runtime/executors/workflowEngine';
+import { workflowEngine } from '../../../src/components/runtime/executors/workflowEngine.js';
 import { WorkflowError } from '../runtime/error/WorkflowError.js';
 
 const router = Router()

@@ -24,14 +24,16 @@ export class ConditionExecutor implements NodeExecutor {
 
     const inputs = context.getNodeInPuts(node.id)
 
-    if (inputs.length === 0) {
+    const firstInput = inputs[0]
+
+    if (!firstInput) {
       throw new Error(
         `Condition node ${node.id} has no input`
       )
     }
 
     const upstreamValue =
-      inputs[0].output
+      firstInput.output
 
     const operator =
       node.data.inputs.operator

@@ -1,4 +1,4 @@
-import type { ToolErrorCode } from "../tool/Tool.js"
+import type { ToolErrorCode } from "../tool/ToolResult.js"
 
 export type ToolMessage = {
     role: 'tool'

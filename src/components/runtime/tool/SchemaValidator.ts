@@ -5,7 +5,7 @@ export class SchemaValidator{
         args: unknown,
     ){
         if(
-            typeof args !== "object" || args === null
+            typeof args !== "object" || args === null || Array.isArray(args)
         ) {
             throw new Error('args must be object')
         }
@@ -13,7 +13,7 @@ export class SchemaValidator{
         const obj = args as Record<string,unknown>
 
         schema.required?.forEach(key => {
-            if(!(key in obj)){
+            if(!(key in obj) || obj[key] === undefined){
                 throw new Error(
                  `Missing ${key}`
                 ) 
@@ -26,7 +26,7 @@ export class SchemaValidator{
             const value = obj[key]
 
             if(
-                value != undefined && typeof value !== config.type
+                value !== undefined && typeof value !== config.type
             ){
                  throw new Error(
                  `${key} must be ${config.type}`

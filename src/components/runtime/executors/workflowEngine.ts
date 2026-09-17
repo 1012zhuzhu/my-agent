@@ -9,6 +9,7 @@ import { type FlowEdge } from "../../../type/index";
 import { ToolRegistry} from '../tool/ToolRegistry';
 import { CalculatorTool } from "../tool/CalculatorTool";
 import { WeatherTool,} from "../tool/WeatherTool";
+import { WorkflowError } from "../error/WorkflowError";
 
 export class workflowEngine {
   private readonly executor: Record<string, NodeExecutor>;
@@ -31,7 +32,10 @@ export class workflowEngine {
 
     const startNode = flow.nodes.find((n) => n.data.name === "startNode");
     if (!startNode) {
-      throw new Error("Workflow must contain a Start Node");
+      throw new WorkflowError(
+        "MISSING_START_NODE",
+        "Workflow must contain a Start Node",
+      );
     }
     let currentNode: FlowNode | undefined = startNode;
 
@@ -40,11 +44,17 @@ export class workflowEngine {
     const step = 50;
     for (let i = 0; i < step; i++) {
       if (!currentNode) {
-        throw new Error("Workflow dont find need Node");
+        throw new WorkflowError(
+          "CURRENT_NODE_NOT_FOUND",
+          "Workflow current node was not found",
+        );
       }
       const executor = this.executor[currentNode.data.name];
       if (!executor) {
-        throw new Error(`Workflow dont find need Node${currentNode.data.name}`);
+        throw new WorkflowError(
+          "EXECUTOR_NOT_FOUND",
+          `Executor not found for node type: ${currentNode.data.name}`,
+        );
       }
       const result = await executor.execute(currentNode, context);
 
@@ -62,11 +72,17 @@ export class workflowEngine {
         incomingHanlde,
       );
       if (!nextEdge) {
-        throw new Error(`No outgoing edge found for node: ${currentNode.id}`);
+        throw new WorkflowError(
+          "OUTGOING_EDGE_NOT_FOUND",
+          `No outgoing edge found for node: ${currentNode.id}`,
+        );
       }
       const nextNode = flow.nodes.find((node) => node.id === nextEdge.target);
       if (!nextNode) {
-        throw new Error(`Workflow target node not found: ${nextEdge.target}`);
+        throw new WorkflowError(
+          "TARGET_NODE_NOT_FOUND",
+          `Workflow target node not found: ${nextEdge.target}`,
+        );
       }
 
       const lastNodeId = nextEdge.source;
@@ -77,7 +93,10 @@ export class workflowEngine {
       });
       currentNode = nextNode;
     }
-    throw new Error("Workflow execution exceeded maximum steps");
+    throw new WorkflowError(
+      "MAX_STEPS_EXCEEDED",
+      "Workflow execution exceeded maximum steps",
+    );
   }
 
   private findNextEdge(
