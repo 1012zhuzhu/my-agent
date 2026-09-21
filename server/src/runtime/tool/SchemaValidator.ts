@@ -1,4 +1,5 @@
 import type { ObjectSchema, Schema } from "./Schema.js"
+//对于参数的验证要重点看
 
 export type ValidatorResult =
 | {

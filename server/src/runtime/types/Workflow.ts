@@ -1,10 +1,15 @@
-export interface RuntimeNode {
-    id: string
-    data: {
-        name: string
-        inputs: Record<string, unknown>
-    }
-}
+import type {
+    ConditionRuntimeNode,
+    EndRuntimeNode,
+    LLMRuntimeNode,
+    StartRuntimeNode,
+} from "../data/node.js"
+
+export type RuntimeNode =
+| StartRuntimeNode
+| LLMRuntimeNode
+| ConditionRuntimeNode
+| EndRuntimeNode
 
 export interface RuntimeEdge {
     source: string

@@ -1,5 +1,4 @@
-import type { History, Message } from "./Message.js"
-import type { ToolRegistry } from "../tool/ToolRegistry.js"
+import type { Message } from "./Message.js"
 
 export interface NodeInput {
     nodeId: string
@@ -12,15 +11,6 @@ export class ExecutionContext {
     private readonly variables = new Map<string, unknown>()
     private readonly nodeInputs = new Map<string, NodeInput[]>()
     private readonly history: Message[] = []
-    private readonly toolRegistry: ToolRegistry
-
-    constructor(toolRegistry: ToolRegistry) {
-        this.toolRegistry = toolRegistry
-    }
-
-    getToolRegistry(): ToolRegistry {
-        return this.toolRegistry
-    }
 
     setNodeOutput(nodeId: string, output: unknown): void {
         this.nodeOutputs.set(nodeId, output)

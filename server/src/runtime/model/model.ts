@@ -4,7 +4,7 @@ import type { ModelResponse } from "./ModelResponse.js";
 
 export interface Model {
   invoke(
+    messages: Message[],
     tools: ToolDefinition[],
-    messages: Message[]
 ): Promise<ModelResponse>
 }
