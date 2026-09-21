@@ -24,6 +24,15 @@ export const NODE_DEFINITION: NodeDefinition[] = [
                     {
                         name: 'mock',
                         label: 'Mock LLM'
+                    },
+                    {
+                        // 这里的 name 会原样发送给服务端 ModelFactory。
+                        name: 'deepseek-flash',
+                        label: 'DeepSeek Flash'
+                    },
+                    {
+                        name: 'deepseek-v4-pro',
+                        label: 'DeepSeek V4 Pro'
                     }
                 ],
                 default: 'mock'
