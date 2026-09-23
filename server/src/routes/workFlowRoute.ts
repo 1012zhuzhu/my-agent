@@ -81,7 +81,7 @@ const router = Router()
 
 const engine =
   new workflowEngine(executors)
-
+//这里是不熟悉的部分需要到时候手动重启
 router.post(
   "/run",
   async (req, res) => {
@@ -134,5 +134,45 @@ router.post(
     }
   }
 )
+// router.post(
+//   "./run",
+//   async (req,res) => {
+//     const {flow, input} = req.body ?? []
 
+//     if(!flow){
+//       return res.status(400).json(
+//         {
+//           success: false,
+//           message:
+//             "flow is required"
+//         }
+//       )
+//     }
+//     try{
+//       const runtimeflow = toRuntimeFlow(flow)
+
+//       const result = engine.run(
+//         runtimeflow,
+//         input
+//       )
+//       return res.json({
+//         success: true,
+//         result
+//     })
+//     } catch(error){
+//         console.log(
+//           "Workflow execution error:",
+//           error
+//         )
+//         return res.status(500).json(
+//           {
+//             success: false,
+//             message:error instanceof Error               
+//             ? error.message
+//             : "workflow execution failed"
+//           }
+//         )
+//     }
+//   }
+// )
 export default router

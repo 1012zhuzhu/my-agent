@@ -1,235 +1,198 @@
-import type { Message } from "../context/Message.js"
-import type { ToolDefinition } from "../tool/Tool.js"
-import type { Model } from "./model.js"
-import type { ModelResponse } from "./ModelResponse.js"
-
-export type DeepSeekModelName =
-  | "deepseek-flash"
-  | "deepseek-v4-pro"
-
-type DeepSeekMessage =
-  | {
-      role: "user"
-      content: string
-    }
-  | {
-      role: "assistant"
-      content: string | null
-      tool_calls?: {
-        id: string
-        type: "function"
-        function: {
-          name: string
-          arguments: string
-        }
-      }[]
-    }
-  | {
-      role: "tool"
-      tool_call_id: string
-      content: string
-    }
-
+import type { Message } from "../context/Message";
+import type { ToolDefinition } from "../tool/Tool";
+import type { Model } from "./model";
+import type { ModelResponse } from "./ModelResponse";
 type DeepSeekToolCall = {
-  id: string
-  type: "function"
-  function: {
-    name: string
+  id: string;
+  type: 'function';
+  function:{
+    name: string,
     arguments: string
   }
 }
 
-type DeepSeekResponse = {
-  choices: {
-    message: {
-      content: string | null
-      tool_calls?: DeepSeekToolCall[]
-    }
-  }[]
+type DeepSeekMessage = 
+|{
+  role: 'user';
+  content: string;
+}
+|{
+  role: 'tool';
+  tool_call_id: string;
+  content: string;
+}
+|{role: 'assistant'; content: string}
+|{
+  role: 'assistant';
+  content: string | null;
+  tool_calls: DeepSeekToolCall[];
 }
 
-export class DeepSeekModel implements Model {
-  constructor(
-    private readonly apiKey: string | undefined,
-    private readonly modelName: DeepSeekModelName =
-      "deepseek-flash"
-  ) {}
 
-  async invoke(
-    messages: Message[],
-    tools: ToolDefinition[]
-  ): Promise<ModelResponse> {
-    // 不在服务启动时强制要求 Key，这样没有 Key 时仍然可以使用 MockModel。
-    // 只有画布真正选择 DeepSeek 节点时，才抛出清晰的配置错误。
-    if (!this.apiKey) {
-      throw new Error(
-        "DEEPSEEK_API_KEY is not configured. Add it to server/.env and restart the server."
-      )
+export class DeepSeekModel implements Model{
+  private readonly apiKey: string | undefined;
+  private readonly modelName: string;
+
+  constructor(apiKey: string | undefined, modelName: string){
+    this.apiKey = apiKey
+    this.modelName = modelName
+  }
+  async invoke(messages: Message[], tools: ToolDefinition[]): Promise<ModelResponse> {
+    if(!this.apiKey){
+      throw new Error("缺少DEEPSEEK_API_KEY");
     }
-
-    if (messages.length === 0) {
-      throw new Error(
-        "DeepSeek requires at least one message"
-      )
+    
+    if(messages.length === 0){
+      throw new Error("这里需要用户的对话需求")
     }
+    const deepSeekMessages = this.toDeepSeekMessage(messages);
 
-    const deepSeekMessages =
-      this.toDeepSeekMessages(messages)
-
-    const deepSeekTools = tools.map(tool => ({
-      type: "function" as const,
-
+    const deepSeekTools = tools.map((tool) => ({
+      type: 'function' as const,
       function: {
         name: tool.name,
         description: tool.description,
         parameters: tool.parameters
       }
     }))
+    const httpResponse = await fetch("https://api.deepseek.com/chat/completions", {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.apiKey}`
+      },
+      body: JSON.stringify({
+        model: this.modelName,
+        messages: deepSeekMessages,
+        tools: deepSeekTools.length > 0 ? deepSeekTools: undefined,
+        stream:false,
+        thinking: {type: 'disabled'}
+      })
+    })
+    if (!httpResponse.ok) {
+      throw new Error(`DeepSeek 请求失败，状态码：${httpResponse.status}`);
+    }
 
-    const response = await fetch(
-      "https://api.deepseek.com/chat/completions",
-      {
-        method: "POST",
+    const data: unknown = await httpResponse.json(); 
 
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.apiKey}`
-        },
+    if(
+      typeof data !== 'object' || data === null || !('choices' in data) || !Array.isArray(data.choices)
+    ) {
+      throw new Error("DeepSeek 返回格式错误：缺少 choices");
+    }
 
-        body: JSON.stringify({
-          model: this.modelName,
+    const firstChoice: unknown = data.choices[0];
 
-          messages: deepSeekMessages,
+    if(typeof firstChoice !== 'object' || firstChoice === null || !("message" in firstChoice)){
+      throw new Error('DeepSeek 返回格式错误缺少message')
+    }
 
-          thinking: {
-            type: "disabled"
-          },
+    const reply: unknown = firstChoice.message;
 
-          ...(deepSeekTools.length > 0
-            ? {
-                tools: deepSeekTools,
-                tool_choice: "auto"
-              }
-            : {}),
+    if(typeof reply !== 'object' || reply === null || Array.isArray(reply)) {
+      throw new Error('DeepSeek 返回格式错误: message不是对象')
+    }
 
-          stream: false
-        })
+    if (
+      "tool_calls" in reply &&
+      Array.isArray(reply.tool_calls) &&
+      reply.tool_calls.length > 0
+    ) {
+
+      if(reply.tool_calls.length !== 1){
+       throw new Error("当前仅支持一次一个工具调用");
+    }
+
+      const call = reply.tool_calls[0] as DeepSeekToolCall;
+      
+      if (
+        typeof call !== "object" ||
+        call === null ||
+        Array.isArray(call) ||
+        !("id" in call) ||
+        typeof call.id !== "string"
+      ) {
+        throw new Error("DeepSeek 工具调用缺少有效的 id");
       }
-    )
-
-    const raw = await response.text()
-
-    if (!response.ok) {
-      throw new Error(
-        `DeepSeek request failed: ${response.status} ${raw}`
-      )
-    }
-
-    let data: DeepSeekResponse
-
-    try {
-      data = JSON.parse(raw) as DeepSeekResponse
-    } catch {
-      throw new Error(
-        "DeepSeek returned an invalid JSON response"
-      )
-    }
-
-    const message =
-      data.choices[0]?.message
-
-    if (!message) {
-      throw new Error(
-        "DeepSeek returned no message"
-      )
-    }
-
-    const toolCall =
-      message.tool_calls?.[0]
-
-    if (toolCall) {
-      // 当前执行器一次处理一个工具调用。模型可以在下一轮继续请求其他工具。
-      let args: unknown
-
-      try {
-        args = JSON.parse(
-          toolCall.function.arguments
-        )
-      } catch {
-        // 模型参数不是合法 JSON 时不直接执行；后面的 SchemaValidator 会拒绝它。
-        args = toolCall.function.arguments
+      if (
+        typeof call.function !== "object" ||
+        call.function === null ||
+        Array.isArray(call.function) ||
+        typeof call.function.name !== "string" ||
+        typeof call.function.arguments !== "string"
+      ) {
+        throw new Error("DeepSeek 工具调用缺少有效的 function");
       }
-
+      let args: unknown;
+      try{
+        args = JSON.parse(call.function.arguments) 
+      }catch{
+        throw new Error('DeepSeek返回的工具参数不合法')
+      }
       return {
-        type: "tool_call",
-        toolCallId: toolCall.id,
-        toolName: toolCall.function.name,
-        args
+        type: 'tool_call',
+        toolCallId: call.id,
+        toolName: call.function.name,
+        args,
       }
     }
 
-    if (message.content === null) {
-      throw new Error(
-        "DeepSeek returned neither text nor a tool call"
-      )
-    }
 
-    return {
-      type: "text",
-      content: message.content
+    if("content" in reply && typeof reply.content === 'string'){
+      return {
+        type:  'text',
+        content: reply.content
+      }
     }
+    
+    throw new Error("DeepSeek 返回格式错误：没有文字或工具调用");
   }
-
-  private toDeepSeekMessages(
-    messages: Message[]
-  ): DeepSeekMessage[] {
-    return messages.map(message => {
-      if (message.role === "user") {
-        return {
-          role: "user",
+  private toDeepSeekMessage(message: Message[]): DeepSeekMessage[]{
+    return message.map((message) => {
+      if(message.role === 'user'){
+        return{
+          role:'user',
           content: message.content
-        }
+        }  
       }
-
-      if (message.role === "assistant") {
-        if (
-          message.toolCallId &&
-          message.toolName
-        ) {
-          return {
-            role: "assistant",
-            content: null,
-
-            tool_calls: [
-              {
-                id: message.toolCallId,
-                type: "function",
-
-                function: {
-                  name: message.toolName,
-
-                  arguments:
-                    JSON.stringify(
-                      message.args ?? {}
-                    )
-                }
-              }
-            ]
+      
+        if(message.role === 'tool'){
+          return{
+            role: 'tool',
+            tool_call_id: message.toolCallId,
+            content: message.content
           }
         }
+        if(message.role === 'assistant'){
+          const wantsTool = message.toolCallId !== undefined || message.toolName !== undefined;
 
-        return {
-          role: "assistant",
-          content: message.content ?? ""
+          if(wantsTool){
+            if(!message.toolCallId || !message.toolName){
+               throw new Error("工具调用缺少 ID 或工具名");
+            }
+            return {
+            role: 'assistant',
+            content: null,
+            tool_calls:[{
+              id:message.toolCallId,
+              type: 'function',
+              function:{
+                name:message.toolName,
+                arguments: JSON.stringify(message.args?? {})
+              }
+            }]
+          }
+          }
+
+          if(typeof message.content !== 'string'){
+           throw new Error("assistant 文字消息缺少 content");
+          }
+          return {
+            role: "assistant",
+            content: message.content
+          };
         }
-      }
-
-      return {
-        role: "tool",
-        // DeepSeek 的字段名是 snake_case，这里是内部类型到外部 API 的边界转换。
-        tool_call_id: message.toolCallId,
-        content: message.content
-      }
+        throw new Error('这里有问题哦')
     })
   }
 }

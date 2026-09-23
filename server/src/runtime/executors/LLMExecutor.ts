@@ -41,7 +41,7 @@ export class LLMExecutor implements NodeExecutor {
 
     const sourceValue =
       inputs.at(-1)?.output
-
+     console.log("LLM 收到的上游值：", sourceValue);
     let inputText = ""
 
     if (typeof sourceValue === "string") {
@@ -73,7 +73,7 @@ export class LLMExecutor implements NodeExecutor {
       role: "user",
       content: userContent
     })
-
+    
     // 只把当前节点勾选的工具定义暴露给模型。
     const tools = this.toolRegistry
       .getDefinitions()
@@ -91,7 +91,7 @@ export class LLMExecutor implements NodeExecutor {
           context.getHistory(),
           tools
         )
-
+        console.log("Model response:", response)
       if (response.type === "text") {
         context.addMessage({
           role: "assistant",
@@ -102,9 +102,10 @@ export class LLMExecutor implements NodeExecutor {
           output: response.content
         }
       }
-
+      
       if (response.type === "tool_call") {
         // 先保存模型原始工具调用，随后保存同一 toolCallId 对应的执行结果。
+        
         context.addMessage({
           role: "assistant",
           toolCallId: response.toolCallId,
