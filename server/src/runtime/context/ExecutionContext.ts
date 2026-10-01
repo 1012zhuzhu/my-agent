@@ -1,5 +1,3 @@
-import type { Message } from "./Message.js"
-
 export interface NodeInput {
     nodeId: string
     output: unknown
@@ -10,8 +8,8 @@ export class ExecutionContext {
     private readonly nodeOutputs = new Map<string, unknown>()
     private readonly variables = new Map<string, unknown>()
     private readonly nodeInputs = new Map<string, NodeInput[]>()
-    private readonly history: Message[] = []
-
+    // private readonly history: Message[] = []
+    //版本更新了有了新的结构这个history用不上了
     setNodeOutput(nodeId: string, output: unknown): void {
         this.nodeOutputs.set(nodeId, output)
     }
@@ -38,11 +36,11 @@ export class ExecutionContext {
         return this.nodeInputs.get(nodeId) ?? []
     }
 
-    addMessage(message: Message): void {
-        this.history.push(message)
-    }
+    // addMessage(message: Message): void {
+    //     this.history.push(message)
+    // }
 
-    getHistory(): Message[] {
-        return this.history
-    }
+    // getHistory():readonly Message[] {
+    //     return this.history
+    // }
 }

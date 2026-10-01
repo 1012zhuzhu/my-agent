@@ -1,3 +1,4 @@
+import { createAgentGraph } from "../agent/AgentGraph"
 import type { ExecutionContext } from "../context/ExecutionContext"
 import type { ModelFactory } from "../model/ModelFactory"
 import type { ToolRegistry } from "../tool/ToolRegistry"
@@ -24,7 +25,7 @@ export class LLMExecutor implements NodeExecutor {
     }
 
     // 一次 LLM 节点允许进行多轮“模型 -> 工具 -> 模型”，防止工具循环无限运行。
-    const maxStep = 50
+    // const maxStep = 50
 
     const allowedTools =
       node.data.inputs.tools ?? []
@@ -36,20 +37,19 @@ export class LLMExecutor implements NodeExecutor {
     const model = this.modelFactory.get(modelName)
 
     // 读取 Workflow 上游传给当前 LLMNode 的数据
-    const inputs =
-      context.getNodeInputs(node.id)
+    const inputs = context.getNodeInputs(node.id)
 
-    const sourceValue =
-      inputs.at(-1)?.output
+    const sourceValue = inputs.at(-1)?.output
+
      console.log("LLM 收到的上游值：", sourceValue);
+
     let inputText = ""
 
-    if (typeof sourceValue === "string") {
+    if(typeof sourceValue === 'string'){
       inputText = sourceValue
-    } else if (
-      sourceValue !== undefined &&
-      sourceValue !== null
-    ) {
+    } else if(
+      sourceValue !== null && sourceValue !== undefined
+    ){
       inputText = JSON.stringify(sourceValue)
     }
 
@@ -69,10 +69,10 @@ export class LLMExecutor implements NodeExecutor {
     }
 
     // 第一次调用真实模型前，历史记录必须至少包含一条用户消息。
-    context.addMessage({
-      role: "user",
-      content: userContent
-    })
+    // context.addMessage({
+    //   role: "user",
+    //   content: userContent
+    // })
     
     // 只把当前节点勾选的工具定义暴露给模型。
     const tools = this.toolRegistry
@@ -81,77 +81,125 @@ export class LLMExecutor implements NodeExecutor {
         allowedTools.includes(tool.name)
       )
 
-    for (
-      let step = 0;
-      step < maxStep;
-      step++
-    ) {
-      const response =
-        await model.invoke(
-          context.getHistory(),
-          tools
-        )
-        console.log("Model response:", response)
-      if (response.type === "text") {
-        context.addMessage({
-          role: "assistant",
-          content: response.content
-        })
+    const agentGraph = createAgentGraph(
+      model,
+      tools,
+      this.toolRunner,
+      allowedTools
+    )
 
-        return {
-          output: response.content
-        }
-      }
-      
-      if (response.type === "tool_call") {
-        // 先保存模型原始工具调用，随后保存同一 toolCallId 对应的执行结果。
-        
-        context.addMessage({
-          role: "assistant",
-          toolCallId: response.toolCallId,
-          toolName: response.toolName,
-          args: response.args
-        })
-
-        const result =
-          await this.toolRunner.run(
-            response.toolName,
-            response.args,
-            allowedTools
-          )
-
-        if (result.success) {
-          context.addMessage({
-            role: "tool",
-            toolCallId:
-              response.toolCallId,
-            toolName:
-              response.toolName,
-            content:
-              result.content,
-            success: true
-          })
-        } else {
-          context.addMessage({
-            role: "tool",
-            toolCallId:
-              response.toolCallId,
-            toolName:
-              response.toolName,
-            content:
-              result.content,
-            success: false,
-            errorCode:
-              result.errorCode
-          })
-        }
-
-        continue
-      }
+    const config = {
+      configurable: {
+        thread_id: 'test-thread-1'
+      },
+      recursionLimit: 50
     }
 
-    throw new Error(
-      "LLMExecutor exceeded maximum steps"
+    const result = await agentGraph.invoke(
+      {
+        messages: [
+          {
+            role: "user",
+            content: userContent
+          }
+        ]
+      },
+      config
     )
+
+    // for await (
+    //   const snapshot of agentGraph.getStateHistory(config)
+    // ){
+    //   console.log(
+    //     "[Agent][Checkpoint]",
+    //     {
+    //       message: snapshot.values.messages,
+    //       next:snapshot.next,
+    //       config: snapshot.config
+    //     }
+    //   )
+    // }
+    const finalMessage = result.messages.at(-1)
+
+    if(
+      !finalMessage||
+      finalMessage.role !== 'assistant'||
+      finalMessage.content === undefined
+    ) {
+      throw new Error(
+        "AgentGraph returned no final assistant message"
+      ) 
+    }
+    return {
+      output: finalMessage.content
+    }
   }
 }
+//这里是以前为了加入agent流程写的for循环 for (
+    //   let step = 0;
+    //   step < maxStep;
+    //   step++
+    // ) {
+    //   const response =
+    //     await model.invoke(
+    //       context.getHistory(),
+    //       tools
+    //     )
+    //     console.log("Model response:", response)
+    //   if (response.type === "text") {
+    //     context.addMessage({
+    //       role: "assistant",
+    //       content: response.content
+    //     })
+
+    //     return {
+    //       output: response.content
+    //     }
+    //   }
+      
+    //   if (response.type === "tool_call") {
+    //     // 先保存模型原始工具调用，随后保存同一 toolCallId 对应的执行结果。
+        
+    //     context.addMessage({
+    //       role: "assistant",
+    //       toolCallId: response.toolCallId,
+    //       toolName: response.toolName,
+    //       args: response.args
+    //     })
+
+    //     const result =
+    //       await this.toolRunner.run(
+    //         response.toolName,
+    //         response.args,
+    //         allowedTools
+    //       )
+
+    //     if (result.success) {
+    //       context.addMessage({
+    //         role: "tool",
+    //         toolCallId:
+    //           response.toolCallId,
+    //         toolName:
+    //           response.toolName,
+    //         content:
+    //           result.content,
+    //         success: true
+    //       })
+    //     } else {
+    //       context.addMessage({
+    //         role: "tool",
+    //         toolCallId:
+    //           response.toolCallId,
+    //         toolName:
+    //           response.toolName,
+    //         content:
+    //           result.content,
+    //         success: false,
+    //         errorCode:
+    //           result.errorCode
+    //       })
+    //     }
+
+    //     continue
+    //   }
+    // }

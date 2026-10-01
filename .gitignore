@@ -12,6 +12,15 @@ dist
 dist-ssr
 *.local
 
+# Local secrets. Commit the example file, never the real API key.
+.env
+.env.*
+!.env.example
+
+# Local RAG indexes are generated from the source knowledge files.
+server/src/runtime/rag/data/
+server/src/runtime/rag/knowledgeBase.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
