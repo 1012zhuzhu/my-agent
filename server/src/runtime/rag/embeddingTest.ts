@@ -1,36 +1,17 @@
-import * as lancedb from "@lancedb/lancedb"
-import { search } from "./Retriever"
-import {
-    getKnowledgeTable,
-    syncKnowledge
-} from "./KnowledgeIndexer"
+import { RagService } from "./RagService";
 
-const db = await lancedb.connect(
-    "./data/rag-lancedb"
-)
-
-const table = await getKnowledgeTable(
-    db,
+const rag = new RagService(
+     "./data/rag-lancedb",
     "./knowledge"
 )
 
-await syncKnowledge(
-    table,
-    "./knowledge"
+await rag.init()
+
+const result = await rag.retrieve(
+    "员工守则"
 )
 
-const result = await search(
-    "去上海出差要注意什么",
-    table
-)
-
-const context = result
-    .map(item => item.text)
-    .join(".\n")
-
-console.log(context)
-
-
+console.log(result)
 
 // async function buildIndex(
 //     documents: string[]

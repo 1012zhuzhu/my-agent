@@ -16,12 +16,45 @@ import type { NodeExecutor } from "../runtime/executors/NodeExecutor.js"
 import { StartExecutor } from "../runtime/executors/StartExecutor.js"
 import { ConditionExecutor } from "../runtime/executors/ConditionExecutor.js"
 import { EndExecutor } from "../runtime/executors/EndExecutor.js"
+import { RagService } from "../runtime/rag/RagService.js"
+import { RagTool } from "../runtime/tool/ragTool.js"
+import path from "node:path"
+
+// workFlowRoute.ts 当前所在目录：server/src/routes
+const ragRoot = path.resolve(
+  import.meta.dirname,
+  "../runtime/rag"
+)
+
+// LanceDB 数据保存位置
+const ragDatabasePath = path.join(
+  ragRoot,
+  "data",
+  "rag-lancedb"
+)
+
+// 原始知识文件所在位置
+const knowledgeDirectory = path.join(
+  ragRoot,
+  "knowledge"
+)
 
 const toolRegistry =
   new ToolRegistry()
 
 toolRegistry.register(
   new WeatherTool()
+)
+
+const ragService = new RagService(
+  ragDatabasePath,
+  knowledgeDirectory
+)
+
+await ragService.init()
+
+toolRegistry.register(
+  new RagTool(ragService)
 )
 
 const toolRunner =

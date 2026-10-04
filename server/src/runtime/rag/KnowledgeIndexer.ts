@@ -102,7 +102,7 @@ export async function syncKnowledge(
         } else if (
             indexedModifiedTime !== currentModifiedTime
         ) {
-            await table.delete(`source = $'{source}'`)
+            await table.delete(`source = '${source}'`)
 
             const records = await processFile(filePath)
 
@@ -142,30 +142,23 @@ export async function getKnowledgeTable(
         "knowledge"
     )
 
-    // 已经存在，就直接打开以前的表
-    if (exists) {
-        console.log("打开已有 knowledge 表")
+    if(exists){
+         console.log("打开表");
+         
+        return await db.openTable("knowledge")
 
-        return await db.openTable(
-            "knowledge"
-        )
     }
-
-    // 不存在，说明是第一次建立知识库
-    console.log("第一次创建 knowledge 表")
-
-    const filePaths =
-        await loadKnowledgeFiles(directory)
+    console.log("创建新的表格");
+    
+    const filePaths =await loadKnowledgeFiles(directory)
 
     const knowledgeBase = []
 
-    for (const filePath of filePaths) {
-        const records =
-            await processFile(filePath)
+    for(const filePath of filePaths){
+        const records = await processFile(filePath)
 
         knowledgeBase.push(...records)
     }
-
     return await db.createTable(
         "knowledge",
         knowledgeBase
