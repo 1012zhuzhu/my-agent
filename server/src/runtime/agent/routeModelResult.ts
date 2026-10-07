@@ -7,7 +7,7 @@ export function routeModelResult(
 
     if(
         lastMessage?.role === "assistant" &&
-        lastMessage.toolCallId && lastMessage.toolName
+        lastMessage.toolCalls && lastMessage.toolCalls?.length > 0
     ) {
         return "tool"
     }

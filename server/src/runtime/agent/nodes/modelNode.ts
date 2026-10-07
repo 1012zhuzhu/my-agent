@@ -34,17 +34,15 @@ export function createModelNode(
         }
         console.log(
             "[Agent][ModelNode] tool call:",
-            response.toolName,
-            response.args
+            response.toolCalls
         )
 
         return {
             messages: [
                 {
                     role: 'assistant' as const,
-                    toolCallId: response.toolCallId,
-                    toolName: response.toolName,
-                    args: response.args
+                    content: '',
+                    toolCalls: response.toolCalls
                 }
             ]
         }
