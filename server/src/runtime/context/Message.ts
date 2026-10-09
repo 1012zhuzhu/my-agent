@@ -1,4 +1,5 @@
 import type { ToolErrorCode } from "../tool/ToolResult.js"
+import type { ToolCall } from '../model/ModelResponse';
 
 export type ToolMessage = {
     role: 'tool'
@@ -18,11 +19,17 @@ export type Message =
 | {
     role: 'assistant'
     content?: string
-    // assistant 发起工具调用时，三项数据会一起保存到历史记录。
-    toolCallId?: string
-    toolName?: string
-    args?: unknown
+
+    toolCalls?: ToolCall[]
 }
 | ToolMessage
 
 export type History = Message[]
+// {
+//     role: 'assistant'
+//     content?: string
+//     // assistant 发起工具调用时，三项数据会一起保存到历史记录。
+//     toolCallId?: string
+//     toolName?: string
+//     args?: unknown
+// }

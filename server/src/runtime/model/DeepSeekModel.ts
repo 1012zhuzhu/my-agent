@@ -2,6 +2,7 @@ import type { Message } from "../context/Message";
 import type { ToolDefinition } from "../tool/Tool";
 import type { Model } from "./model";
 import type { ModelResponse } from "./ModelResponse";
+import { type ToolCall } from './ModelResponse';
 type DeepSeekToolCall = {
   id: string;
   type: 'function';
@@ -99,42 +100,75 @@ export class DeepSeekModel implements Model{
       reply.tool_calls.length > 0
     ) {
 
-      if(reply.tool_calls.length !== 1){
-       throw new Error("当前仅支持一次一个工具调用");
-    }
+    console.log(
+      "[DeepSeek] tool_calls:",
+      JSON.stringify(reply.tool_calls, null, 2)
+    )
 
-      const call = reply.tool_calls[0] as DeepSeekToolCall;
+
+      const toolCalls = reply.tool_calls 
       
-      if (
-        typeof call !== "object" ||
-        call === null ||
-        Array.isArray(call) ||
-        !("id" in call) ||
-        typeof call.id !== "string"
-      ) {
-        throw new Error("DeepSeek 工具调用缺少有效的 id");
-      }
-      if (
-        typeof call.function !== "object" ||
-        call.function === null ||
-        Array.isArray(call.function) ||
-        typeof call.function.name !== "string" ||
-        typeof call.function.arguments !== "string"
-      ) {
-        throw new Error("DeepSeek 工具调用缺少有效的 function");
-      }
-      let args: unknown;
-      try{
-        args = JSON.parse(call.function.arguments) 
-      }catch{
-        throw new Error('DeepSeek返回的工具参数不合法')
-      }
+      const parsedToolCalls : ToolCall[] = toolCalls.map((call) =>
+      {
+        if(
+          typeof call !== "object" || call === null || Array.isArray(call) || !("id" in call) || typeof call.id !== "string"
+        ){
+          throw new Error("DeepSeek 工具调用缺少有效的 id")
+        }
+        if(
+          typeof call.function !== "object" || call.function === null || Array.isArray(call.function) || typeof call.function.name !== "string" || typeof call.function.arguments !== "string"
+        ){
+          throw new Error("DeepSeek 工具调用缺少有效的 function");
+        }
+
+        let args : unknown
+
+        try{
+          args = JSON.parse(call.function.arguments) 
+        }catch{
+          throw new Error('DeepSeek返回的工具参数不合法')
+        }
+
+        return {
+          toolCallId: call.id,
+          toolName: call.function.name,
+          args
+        }
+      })
+
       return {
-        type: 'tool_call',
-        toolCallId: call.id,
-        toolName: call.function.name,
-        args,
+        type: 'tool_calls',
+        toolCalls: parsedToolCalls
       }
+
+      // if (
+      //   typeof toolCalls !== "object" ||
+      //   toolCalls === null ||
+      //   Array.isArray(toolCalls) ||
+      //   !("id" in toolCalls) ||
+      //   typeof toolCalls !== "string"
+      // ) {
+      //   throw new Error("DeepSeek 工具调用缺少有效的 id");
+      // }
+      // if (
+      //   typeof call.function !== "object" ||
+      //   call.function === null ||
+      //   Array.isArray(call.function) ||
+      //   typeof call.function.name !== "string" ||
+      //   typeof call.function.arguments !== "string"
+      // ) {
+      //   throw new Error("DeepSeek 工具调用缺少有效的 function");
+      // }
+      // let args: unknown;
+      // try{
+      //   args = JSON.parse(call.function.arguments) 
+      // }catch{
+      //   throw new Error('DeepSeek返回的工具参数不合法')
+      // }
+      // return {
+      //   type: 'tool_calls',
+      //   toolCalls: 
+      // }
     }
 
 
@@ -147,52 +181,64 @@ export class DeepSeekModel implements Model{
     
     throw new Error("DeepSeek 返回格式错误：没有文字或工具调用");
   }
-  private toDeepSeekMessage(message: Message[]): DeepSeekMessage[]{
-    return message.map((message) => {
-      if(message.role === 'user'){
-        return{
-          role:'user',
-          content: message.content
-        }  
-      }
-      
-        if(message.role === 'tool'){
-          return{
-            role: 'tool',
-            tool_call_id: message.toolCallId,
-            content: message.content
-          }
-        }
-        if(message.role === 'assistant'){
-          const wantsTool = message.toolCallId !== undefined || message.toolName !== undefined;
+  private toDeepSeekMessage(
+    messages: Message[]
+): DeepSeekMessage[] {
 
-          if(wantsTool){
-            if(!message.toolCallId || !message.toolName){
-               throw new Error("工具调用缺少 ID 或工具名");
-            }
+    return messages.map((message) => {
+
+        if (message.role === 'user') {
             return {
-            role: 'assistant',
-            content: null,
-            tool_calls:[{
-              id:message.toolCallId,
-              type: 'function',
-              function:{
-                name:message.toolName,
-                arguments: JSON.stringify(message.args?? {})
-              }
-            }]
-          }
-          }
-
-          if(typeof message.content !== 'string'){
-           throw new Error("assistant 文字消息缺少 content");
-          }
-          return {
-            role: "assistant",
-            content: message.content
-          };
+                role: 'user',
+                content: message.content
+            }
         }
-        throw new Error('这里有问题哦')
+
+        if (message.role === 'tool') {
+            return {
+                role: 'tool',
+                tool_call_id: message.toolCallId,
+                content: message.content
+            }
+        }
+
+        if (message.role === 'assistant') {
+
+            if (
+                message.toolCalls &&
+                message.toolCalls.length > 0
+            ) {
+                return {
+                    role: 'assistant',
+                    content: null,
+                    tool_calls: message.toolCalls.map(
+                        (toolCall) => ({
+                            id: toolCall.toolCallId,
+                            type: 'function' as const,
+                            function: {
+                                name: toolCall.toolName,
+                                arguments: JSON.stringify(
+                                    toolCall.args ?? {}
+                                )
+                            }
+                        })
+                    )
+                }
+            }
+
+            if (typeof message.content !== 'string') {
+                throw new Error(
+                    "assistant 文字消息缺少 content"
+                )
+            }
+
+            return {
+                role: 'assistant',
+                content: message.content
+            }
+        }
+
+        throw new Error('对于将message转换deepseekmessage这里有问题哦')
     })
-  }
+}
 }

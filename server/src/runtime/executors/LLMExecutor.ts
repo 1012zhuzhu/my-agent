@@ -88,9 +88,20 @@ export class LLMExecutor implements NodeExecutor {
       allowedTools
     )
 
+    const conversationId = context.getVariable("conversationId")
+
+    if(
+      typeof conversationId !== "string" ||
+      !conversationId.trim()
+    ){
+      throw new Error(
+        "conversationId is missing or invalid"
+      )
+    }
+
     const config = {
       configurable: {
-        thread_id: 'test-thread-1'
+        thread_id: conversationId
       },
       recursionLimit: 50
     }

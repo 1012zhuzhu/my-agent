@@ -13,12 +13,13 @@ export class workflowEngine {
     }
     async run(
         flow: RuntimeFlow,
-        input: unknown
+        input: unknown,
+        conversationId: string
     ):Promise<NodeExecutionResult> {
         const context = new ExecutionContext()
 
         context.setVariable('input',input)
-
+        context.setVariable("conversationId",conversationId)
         const startNode = flow.nodes.find(
             node => node.data.name === 'startNode'
         )

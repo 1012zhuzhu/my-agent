@@ -51,8 +51,9 @@ export const NODE_DEFINITION: NodeDefinition[] = [
                 optional: true,
                 multiple: true,
                 options: [
-                    { name: 'calculator', label: '计算器'},
-                    { name: 'weather', label: '天气'},
+                    { name: 'calculator', label: '计算器' },
+                    { name: 'weather', label: '天气' },
+                    { name: 'knowledge_search', label: '知识库查询' },
                 ],
                 default: [],
             }

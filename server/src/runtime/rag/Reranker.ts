@@ -1,12 +1,13 @@
-import {
-  AutoModelForSequenceClassification,
-  AutoTokenizer
-} from "@huggingface/transformers"
-
 const modelName =
   "jinaai/jina-reranker-v2-base-multilingual"
 
 async function loadReranker() {
+  // 只有真正启用 reranker 时才加载 Transformers.js 和大模型。
+  const {
+    AutoModelForSequenceClassification,
+    AutoTokenizer
+  } = await import("@huggingface/transformers")
+
   return Promise.all([
     AutoTokenizer.from_pretrained(
       modelName

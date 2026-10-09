@@ -40,7 +40,8 @@ function formatOutput(output: unknown): string {
 
 function App() {
   const { isDarkMode, saveFlow } = useCanvasStore();
-  const [workflowInput, setWorkflowInput] = useState("帮我查上海天气");
+  const [workflowInput, setWorkflowInput] = useState("你好");
+  const [conversationId, serConversationId] = useState(() => crypto.randomUUID())
   const [isRunning, setIsRunning] = useState(false);
   const [runMessage, setRunMessage] = useState<{
     type: "success" | "error";
@@ -62,6 +63,7 @@ function App() {
         body: JSON.stringify({
           flow: savedFlow,
           input: workflowInput,
+          conversationId,
         }),
       });
 
@@ -92,6 +94,10 @@ function App() {
       mode: isDarkMode ? "dark" : "light",
     },
   });
+
+  const handleNewConversation = () => {
+    serConversationId(crypto.randomUUID())
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -125,6 +131,13 @@ function App() {
                 }
               >
                 {isRunning ? "运行中..." : "Run Workflow"}
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={handleNewConversation}
+                disabled={isRunning}
+              >
+                新建会话
               </Button>
               {runMessage && (
                 <Alert

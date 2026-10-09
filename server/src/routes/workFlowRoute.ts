@@ -48,10 +48,9 @@ toolRegistry.register(
 
 const ragService = new RagService(
   ragDatabasePath,
-  knowledgeDirectory
+  knowledgeDirectory,
+  process.env.RAG_RERANK_ENABLED === "true"
 )
-
-await ragService.init()
 
 toolRegistry.register(
   new RagTool(ragService)
@@ -120,7 +119,8 @@ router.post(
   async (req, res) => {
     const {
       flow,
-      input
+      input,
+      conversationId
     } = req.body ?? {}
 
     if (!flow) {
@@ -133,6 +133,18 @@ router.post(
         })
     }
 
+    if (
+      typeof conversationId !== "string" ||
+      !conversationId.trim()
+    ) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "conversationId is required"
+        })
+    }
+
     try {
       // 浏览器提交的是 React Flow 的保存格式，先在服务端校验并转换成运行时格式。
       const runtimeFlow =
@@ -141,7 +153,8 @@ router.post(
       const result =
         await engine.run(
           runtimeFlow,
-          input
+          input,
+          conversationId
         )
 
       return res.json({

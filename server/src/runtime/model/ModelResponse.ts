@@ -7,10 +7,20 @@ export interface TextResponse {
     content: string
 }
 
-export interface ToolResponse {
-    type: 'tool_call',
-    // 这个 ID 由真实模型生成，执行完工具后必须原样传回模型。
-    toolCallId: string,
-    toolName: string,
-    args: unknown,
+export interface ToolCall {
+    toolCallId: string
+    toolName: string
+    args: unknown
 }
+
+export interface ToolResponse{
+    type: 'tool_calls'
+    toolCalls: ToolCall[]
+}
+// export interface ToolResponse {
+//     type: 'tool_call',
+//     // 这个 ID 由真实模型生成，执行完工具后必须原样传回模型。
+//     toolCallId: string,
+//     toolName: string,
+//     args: unknown,
+// }

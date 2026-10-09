@@ -1,12 +1,32 @@
-import { pipeline } from "@huggingface/transformers";
+async function loadExtractor() {
+    // 动态导入，避免服务器仅仅加载路由时就初始化 Transformers.js。
+    const { pipeline } = await import("@huggingface/transformers")
 
-const exetrator = await pipeline(
-    "feature-extraction",
-    "Xenova/paraphrase-multilingual-MiniLM-L12-v2"
-)
+    return pipeline(
+        "feature-extraction",
+        "Xenova/paraphrase-multilingual-MiniLM-L12-v2"
+    )
+}
+
+let extractorPromise:
+    ReturnType<typeof loadExtractor> | null = null
+
+function getExtractor() {
+    if (!extractorPromise) {
+        extractorPromise = loadExtractor().catch((error) => {
+            // 加载失败后允许下一次查询重新尝试，而不是永久保存失败状态。
+            extractorPromise = null
+            throw error
+        })
+    }
+
+    return extractorPromise
+}
 
 export async function embed(text: string): Promise<number[]> {
-    const output = await exetrator(
+    const extractor = await getExtractor()
+
+    const output = await extractor(
         text,
         {
             pooling: "mean",

@@ -1,6 +1,7 @@
 import type { Tool } from "./Tool.js"
 import type { ToolResult } from "./ToolResult.js"
 import { RagService } from "../rag/RagService.js"
+import { log } from "console"
 
 export class RagTool implements Tool {
   name = "knowledge_search"
@@ -45,15 +46,28 @@ export class RagTool implements Tool {
     if (documents.length === 0) {
     return {
         success: true,
-        content: "知识库中没有找到与该问题相关的信息"
+        content: "知识库中没有找到与该问题相关的信息",
+        data: {
+            sources: []
+        }
     }
     }
 
     const context = this.ragService.buildContext(documents)
 
+    const sources =
+    documents.map(
+        item => item.source
+    )
+    console.log( "[RagTool] sources:",
+  sources);
+    
     return {
         success: true,
-        content: context
+        content: context,
+        data: {
+            sources: sources
+        }
     }
   }
 }
