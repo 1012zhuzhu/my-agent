@@ -18,7 +18,7 @@ export class ToolRunner {
             return {
                 success:false,
                 content: `Tool${toolName} is not allowed`,
-                errorCode:'INTERNAL_ERROR'
+                errorCode:'TOOL_NOT_ALLOWED'
             }
         }
 
@@ -28,7 +28,7 @@ export class ToolRunner {
            return {
             success: false,
             content: `Tool${toolName} is not registered`,
-            errorCode: 'INVALID_ARGUMENT'
+            errorCode: 'TOOL_NOT_FOUND'
            }
         }
 

@@ -1,7 +1,7 @@
 import type { Tool } from "./Tool.js"
 import type { ToolResult } from "./ToolResult.js"
 import { RagService } from "../rag/RagService.js"
-import { log } from "console"
+
 
 export class RagTool implements Tool {
   name = "knowledge_search"

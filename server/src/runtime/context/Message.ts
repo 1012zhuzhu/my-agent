@@ -1,15 +1,23 @@
 import type { ToolErrorCode } from "../tool/ToolResult.js"
 import type { ToolCall } from '../model/ModelResponse';
 
-export type ToolMessage = {
-    role: 'tool'
-    // DeepSeek 用这个 ID 判断：当前结果是在回答哪一次工具调用。
-    toolCallId: string
-    toolName: string
-    content: string
-    success: boolean
-    errorCode?: ToolErrorCode
-}
+export type ToolMessage =
+    | {
+        role: 'tool'
+        toolCallId: string
+        toolName: string
+        content: string
+        success: true
+        data?: unknown
+    }
+    | {
+        role: 'tool'
+        toolCallId: string
+        toolName: string
+        content: string
+        success: false
+        errorCode: ToolErrorCode
+    }
 
 export type Message = 
 | {

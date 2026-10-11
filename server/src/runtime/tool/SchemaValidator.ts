@@ -33,13 +33,16 @@ private static validateValue(
             return {valid: true}
         
         case 'number':
-            if(typeof value !== 'number'){
-                return{
+            if (
+                typeof value !== 'number' ||
+                !Number.isFinite(value)
+            ) {
+                return {
                     valid: false,
-                    message:`${path} should be number`
+                    message: `${path} should be a finite number`
                 }
             }
-            return {valid: true}
+            return { valid: true }
 
         case 'boolean':
             if(typeof value !== 'boolean'){
